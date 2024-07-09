@@ -110,6 +110,13 @@ const chartData = [
   { date: "2024-06-30", in: 446, out: 400 },
 ];
 
+const chartDataWithTotal = chartData.map((entry) => ({
+  date: entry.date,
+  in: entry.in,
+  out: entry.out,
+  total: entry.in + entry.out,
+}));
+
 const chartConfig = {
   views: {
     label: "Visitor",
@@ -122,19 +129,31 @@ const chartConfig = {
     label: "Out",
     color: "hsl(var(--chart-2))",
   },
+  total: {
+    label: "Total",
+    color: "hsl(var(--chart-2))",
+  },
 } satisfies ChartConfig;
 
 export function VisitorChart() {
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("in");
 
-  const total = React.useMemo(() => {
+  const totalPerCategory = React.useMemo(() => {
     const formatter = new Intl.NumberFormat("en-US"); // Ensure consistent formatting
-    const totalIn = chartData.reduce((acc, curr) => acc + curr.in, 0);
-    const totalOut = chartData.reduce((acc, curr) => acc + curr.out, 0);
+    const totalIn = chartDataWithTotal.reduce((acc, curr) => acc + curr.in, 0);
+    const totalOut = chartDataWithTotal.reduce(
+      (acc, curr) => acc + curr.out,
+      0
+    );
+    const totalVisitor = chartDataWithTotal.reduce(
+      (acc, curr) => acc + curr.total,
+      0
+    );
     return {
       in: formatter.format(totalIn),
       out: formatter.format(totalOut),
+      total: formatter.format(totalVisitor),
     };
   }, [chartData]);
 
@@ -148,7 +167,7 @@ export function VisitorChart() {
           </CardDescription>
         </div>
         <div className="flex">
-          {["in", "out"].map((key) => {
+          {["in", "out", "total"].map((key) => {
             const chart = key as keyof typeof chartConfig;
             return (
               <button
@@ -160,8 +179,10 @@ export function VisitorChart() {
                 <span className="text-xs text-muted-foreground">
                   {chartConfig[chart].label}
                 </span>
-                <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {total[key as keyof typeof total].toLocaleString()}
+                <span className="text-lg font-bold leading-none xl:text-3xl">
+                  {totalPerCategory[
+                    key as keyof typeof totalPerCategory
+                  ].toLocaleString()}
                 </span>
               </button>
             );
@@ -175,7 +196,7 @@ export function VisitorChart() {
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={chartDataWithTotal}
             margin={{
               left: 12,
               right: 12,
