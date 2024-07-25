@@ -1,22 +1,9 @@
-import Image from "next/image";
-import React from "react";
 import { VisitorChart } from "./VisitorChart";
-import { getPeople } from "./services/apiPeoples";
 
 const Dashboard = async () => {
-  const peoples = await getPeople();
-  console.log(peoples);
-
   return (
     <div className="py-0 sm:py-12 space-y-12 p-4 h-[80vh]">
       <div className="flex flex-col lg:flex-row items-center justify-center md:justify-evenly md:p-0 gap-4 sm:gap-4 xl:gap-0">
-        {/* <Image
-          src="/fakeCam2.png"
-          alt=""
-          width={600}
-          height={600}
-          className="rounded-lg object-cover shadow-lg"
-        /> */}
         <video
           src="/test_1.mp4"
           width="600"
