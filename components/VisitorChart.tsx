@@ -22,6 +22,39 @@ import { useRouter } from "next/navigation";
 
 export function VisitorChart() {
   const [peoples, setPeoples] = React.useState<any[]>([]);
+  const router = useRouter();
+  React.useEffect(() => {
+    const fetchPeoples = async () => {
+      const { data, error } = await supabase.from("peoples").select("*");
+      if (error) {
+        console.error(error);
+      } else {
+        setPeoples(data);
+      }
+    };
+
+    fetchPeoples();
+
+    const channel = supabase
+      .channel("realtime_peoples")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "peoples",
+        },
+        (payload) => {
+          console.log("NYAHHAHA", payload);
+          router.refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, router]);
 
   const chartDataWithTotal = peoples.map((person) => ({
     date: new Date(person.created_at).toLocaleDateString("en-US"), // Format date to only show date without time
@@ -47,40 +80,6 @@ export function VisitorChart() {
       color: "hsl(var(--chart-2))",
     },
   } satisfies ChartConfig;
-
-  const router = useRouter();
-  React.useEffect(() => {
-    const fetchPeoples = async () => {
-      const { data, error } = await supabase.from("peoples").select("*");
-      if (error) {
-        console.error(error);
-      } else {
-        setPeoples(data);
-      }
-    };
-
-    fetchPeoples();
-
-    const channel = supabase
-      .channel("realtime_peoples")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "peoples",
-        },
-        (payload) => {
-          console.log("HI", payload);
-          router.refresh();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, router]);
 
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("in");
@@ -138,7 +137,7 @@ export function VisitorChart() {
       <CardContent className="px-2 sm:p-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[40vh] w-full"
         >
           <BarChart
             accessibilityLayer
