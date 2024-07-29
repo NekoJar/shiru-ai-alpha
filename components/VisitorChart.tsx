@@ -46,7 +46,8 @@ export function VisitorChart() {
         },
         (payload) => {
           console.log("NYAHHAHA", payload);
-          router.refresh();
+          fetchPeoples(); // Fetch the updated data directly
+          router.refresh(); // Refresh the router if needed
         }
       )
       .subscribe();
@@ -54,7 +55,7 @@ export function VisitorChart() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, router]);
+  }, [router]);
 
   const chartDataWithTotal = peoples.map((person) => ({
     date: new Date(person.created_at).toLocaleDateString("en-US"), // Format date to only show date without time
