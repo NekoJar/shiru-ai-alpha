@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import axios from "axios";
 
 import {
   Card,
@@ -25,38 +26,60 @@ export function VisitorChart() {
   const router = useRouter();
 
   React.useEffect(() => {
-    const fetchPeoples = async () => {
-      const { data, error } = await supabase.from("peoples").select("*");
-      if (error) {
-        console.error(error);
-      } else {
-        setPeoples(data);
+    // Fetch data from your API
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/peoples");
+        setPeoples(response.data);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error(
+            "Error fetching data:",
+            error.response?.data || error.message
+          );
+        } else if (error instanceof Error) {
+          console.error("Error fetching data:", error.message);
+        } else {
+          console.error("An unknown error occurred");
+        }
       }
     };
+    fetchData();
+  }, []);
 
-    fetchPeoples();
+  // React.useEffect(() => {
+  //   const fetchPeoples = async () => {
+  //     const { data, error } = await supabase.from("peoples").select("*");
+  //     if (error) {
+  //       console.error(error);
+  //     } else {
+  //       setPeoples(data);
+  //     }
+  //   };
 
-    const channel = supabase
-      .channel("realtime_peoples")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "peoples",
-        },
-        (payload) => {
-          console.log("NYAHHAHA", payload);
-          fetchPeoples(); // Fetch the updated data directly
-          router.refresh(); // Refresh the router if needed
-        }
-      )
-      .subscribe();
+  //   fetchPeoples();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [router]);
+  //   const channel = supabase
+  //     .channel("realtime_peoples")
+  //     .on(
+  //       "postgres_changes",
+  //       {
+  //         event: "*",
+  //         schema: "public",
+  //         table: "peoples",
+  //       },
+  //       (payload) => {
+  //         console.log("NYAHHAHA", payload);
+  //         fetchPeoples(); // Fetch the updated data directly
+  //         router.refresh(); // Refresh the router if needed
+  //       }
+  //     )
+  //     .subscribe();
+
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [router]);
 
   const chartDataWithTotal = peoples.map((person) => ({
     date: new Date(person.created_at).toLocaleDateString("en-US"), // Format date to only show date without time
