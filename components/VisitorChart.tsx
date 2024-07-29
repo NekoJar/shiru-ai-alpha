@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 export function VisitorChart() {
   const [peoples, setPeoples] = React.useState<any[]>([]);
   const router = useRouter();
+
   React.useEffect(() => {
     const fetchPeoples = async () => {
       const { data, error } = await supabase.from("peoples").select("*");
