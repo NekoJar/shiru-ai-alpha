@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { useClickCount } from "./hook/useClickCount";
 import { useStartPoint } from "./hook/useStartPoint";
-import { drawLine } from "./ui/drawLine";
+import { drawLine } from "../utils/drawLine";
 import { useCanvasRef } from "./hook/useCanvasRef";
 import { useVideoContainerRef } from "./hook/useVideoContainerRef";
 import { updateYamlFile } from "@/utils/updateYamlFile";
@@ -86,15 +86,12 @@ export const VideoFeed = () => {
       default:
         return;
     }
-
-    drawLine(point1.x, point1.y, point2.x, point2.y, canvasRef);
     updateYamlFile(point1, point2);
   };
 
   return (
     <>
       <div className="w-[90vw] h-64 sm:h-[30rem] sm:w-[95vw] xl:w-[40vw] xl:h-[60vh] space-y-4 flex flex-col justify-center items-end">
-        <LineSelector setLine={setLine} />
         <div
           //   className="relative w-[640px] h-[480px] overflow-hidden"
           className="relative w-[90vw] h-64 sm:h-[30rem] sm:w-[95vw] xl:w-[40vw] xl:h-[60vh] overflow-hidden"
@@ -102,11 +99,12 @@ export const VideoFeed = () => {
         >
           <img
             src={process.env.NEXT_PUBLIC_VIDEO_FEED}
-            className="rounded-lg w-full h-full object-contain shadow-lg"
+            className="w-full h-full object-contain shadow-lg"
             alt="video_feed"
           />
           <canvas ref={canvasRef} className="absolute top-0 left-0" />
         </div>
+        <LineSelector setLine={setLine} />
       </div>
     </>
   );

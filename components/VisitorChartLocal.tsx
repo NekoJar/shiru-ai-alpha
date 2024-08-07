@@ -29,7 +29,14 @@ import {
 import { useRouter } from "next/navigation";
 import supabase from "./services/supabase";
 
-type ViewOption = "none" | "hourly" | "daily" | "monthly" | "yearly";
+type ViewOption =
+  | "none"
+  | "10min"
+  | "30min"
+  | "hourly"
+  | "daily"
+  | "monthly"
+  | "yearly";
 
 type Person = {
   createdAt: string;
@@ -45,7 +52,7 @@ type AggregatedData = {
   total: number;
 };
 
-export function VisitorChartLocal() {
+export function VisitorChartSupabase() {
   const [peoples, setPeoples] = React.useState<Person[]>([]);
   const [view, setView] = React.useState<ViewOption>("none");
   const [activeChart, setActiveChart] =
@@ -104,11 +111,37 @@ export function VisitorChartLocal() {
       }));
     }
 
+    let filteredData = data;
+    if (view === "10min" || view === "30min" || view === "hourly") {
+      // Determine the most recent day
+      const mostRecentDate = new Date(
+        Math.max(...data.map((person) => new Date(person.createdAt).getTime()))
+      );
+      const mostRecentDay = mostRecentDate.toISOString().split("T")[0];
+
+      // Filter data to include only entries from the most recent day
+      filteredData = data.filter(
+        (person) => person.createdAt.split("T")[0] === mostRecentDay
+      );
+    }
+
     const groupedData: { [key: string]: AggregatedData } = {};
-    data.forEach((person) => {
+    filteredData.forEach((person) => {
       const date = new Date(person.createdAt);
       const key =
-        view === "hourly"
+        view === "10min"
+          ? `${date.getFullYear()}-${
+              date.getMonth() + 1
+            }-${date.getDate()} ${date.getHours()}:${
+              Math.floor(date.getMinutes() / 10) * 10
+            }:00`
+          : view === "30min"
+          ? `${date.getFullYear()}-${
+              date.getMonth() + 1
+            }-${date.getDate()} ${date.getHours()}:${
+              Math.floor(date.getMinutes() / 30) * 30
+            }:00`
+          : view === "hourly"
           ? `${date.getFullYear()}-${
               date.getMonth() + 1
             }-${date.getDate()} ${date.getHours()}:00`
@@ -171,7 +204,7 @@ export function VisitorChartLocal() {
 
   return (
     <>
-      <div className="flex items-center justify-center xl:justify-end pt-8 xl:pt-0">
+      <div className="flex items-center justify-center xl:justify-end ">
         <Select onValueChange={(value) => setView(value as ViewOption)}>
           <SelectTrigger className="w-[90vw] xl:w-[10vw]">
             <SelectValue placeholder="Select view" />
@@ -180,6 +213,8 @@ export function VisitorChartLocal() {
             <SelectGroup>
               <SelectLabel>View Options</SelectLabel>
               <SelectItem value="none">None</SelectItem>
+              <SelectItem value="10min">Every 10 Minutes</SelectItem>
+              <SelectItem value="30min">Every 30 Minutes</SelectItem>
               <SelectItem value="hourly">Hourly</SelectItem>
               <SelectItem value="daily">Daily</SelectItem>
               <SelectItem value="monthly">Monthly</SelectItem>
@@ -243,8 +278,11 @@ export function VisitorChartLocal() {
                   const date = new Date(value);
                   return view === "none"
                     ? value
-                    : view === "hourly"
-                    ? `${date.getHours()}:00`
+                    : view === "10min" || view === "30min" || view === "hourly"
+                    ? `${date.getHours()}:${date
+                        .getMinutes()
+                        .toString()
+                        .padStart(2, "0")}`
                     : view === "daily"
                     ? date.toLocaleDateString("en-US", {
                         month: "short",

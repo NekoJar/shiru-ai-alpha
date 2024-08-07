@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Pencil1Icon } from "@radix-ui/react-icons";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 type ViewOption =
   | ""
@@ -33,36 +31,24 @@ export const LineSelector: React.FC<LineSelectorProps> = ({ setLine }) => {
   };
 
   return (
-    <div className="relative top-2 right-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            <Pencil1Icon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[40vw] xl:w-[10vw]">
-          <DropdownMenuLabel>View Options</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup
-            value={lineType}
-            //@ts-ignore
-            onValueChange={handleSelectChange}
-          >
-            <DropdownMenuRadioItem value="horizontal">
-              Horizontal Line
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="vertical">
-              Vertical Line
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="diagonal_right">
-              Diagonal Right Line
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="diagonal_left">
-              Diagonal Left Line
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex justify-between items-center w-[90vw] xl:w-[40vw] xl:px-4">
+      <p className="w-[30vw] xl:w-[20vw] text-xs md:text-base">
+        Select your preferred line type:
+      </p>
+      <Select value={lineType} onValueChange={handleSelectChange}>
+        <SelectTrigger className="w-[60vw] xl:w-[20vw]">
+          <SelectValue placeholder="None" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>View Options</SelectLabel>
+            <SelectItem value="horizontal">Horizontal Line</SelectItem>
+            <SelectItem value="vertical">Vertical Line</SelectItem>
+            <SelectItem value="diagonal_right">Diagonal Right Line</SelectItem>
+            <SelectItem value="diagonal_left">Diagonal Left Line</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </div>
   );
 };
