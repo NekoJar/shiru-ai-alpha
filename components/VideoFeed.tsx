@@ -44,25 +44,6 @@ export const VideoFeed = () => {
     };
   }, []);
 
-  const handleVideoClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    if (clickCount === 0) {
-      setStartPoint({ x, y });
-      setClickCount(1);
-    } else if (clickCount === 1) {
-      const endPoint = { x, y };
-      drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, canvasRef);
-      setClickCount(0);
-      updateYamlFile(startPoint, endPoint);
-    }
-  };
-
   return (
     <>
       <div className="w-[90vw] h-64 sm:h-[30rem] sm:w-[95vw] xl:w-[40vw] xl:h-[60vh] space-y-4 flex flex-col justify-center items-end">
