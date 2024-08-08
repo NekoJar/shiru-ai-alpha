@@ -6,24 +6,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: mysql://user:password@mysql:3306/mydatabase
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-    networks:
-      - my-network
-    depends_on:
-      - mysql
-
-  mysql:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: mydatabase
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
     networks:
       - my-network
 
