@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { VisitorChartSupabase } from "./VisitorChartSupabase";
+import { VisitorChartLocal } from "./VisitorChartLocal";
 import { VideoFeed } from "./VideoFeed";
 
 const Dashboard = async () => {
@@ -9,7 +9,7 @@ const Dashboard = async () => {
         <VideoFeed />
 
         <div className="w-[92vw] xl:w-[50vw] space-y-4 sm:space-y-4">
-          <VisitorChartSupabase />
+          <VisitorChartLocal />
           <p className="text-sm sm:text-base">
             Shiru is an artificial intelligence designed to facilitate people
             counting through camera-based scanning. &copy;ShiruAI 2024

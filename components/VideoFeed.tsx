@@ -63,32 +63,6 @@ export const VideoFeed = () => {
     }
   };
 
-  const setLine = (type: ViewOption) => {
-    let point1, point2;
-
-    switch (type) {
-      case "horizontal":
-        point1 = { x: 0, y: 240 };
-        point2 = { x: 768, y: 240 };
-        break;
-      case "vertical":
-        point1 = { x: 321, y: 0 };
-        point2 = { x: 321, y: 768 };
-        break;
-      case "diagonal_right":
-        point1 = { x: 643, y: 0 };
-        point2 = { x: 0, y: 480 };
-        break;
-      case "diagonal_left":
-        point1 = { x: 0, y: 0 };
-        point2 = { x: 643, y: 480 };
-        break;
-      default:
-        return;
-    }
-    updateYamlFile(point1, point2);
-  };
-
   return (
     <>
       <div className="w-[90vw] h-64 sm:h-[30rem] sm:w-[95vw] xl:w-[40vw] xl:h-[60vh] space-y-4 flex flex-col justify-center items-end">
@@ -104,7 +78,7 @@ export const VideoFeed = () => {
           />
           <canvas ref={canvasRef} className="absolute top-0 left-0" />
         </div>
-        <LineSelector setLine={setLine} />
+        <LineSelector />
       </div>
     </>
   );

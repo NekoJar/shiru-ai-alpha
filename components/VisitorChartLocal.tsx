@@ -27,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import supabase from "./services/supabase";
 
 type ViewOption =
   | "none"
@@ -39,6 +38,8 @@ type ViewOption =
   | "yearly";
 
 type Person = {
+  up: number;
+  down: number;
   createdAt: string;
   totalsDown: number;
   totalsUp: number;
@@ -52,12 +53,11 @@ type AggregatedData = {
   total: number;
 };
 
-export function VisitorChartSupabase() {
+export function VisitorChartLocal() {
   const [peoples, setPeoples] = React.useState<Person[]>([]);
   const [view, setView] = React.useState<ViewOption>("none");
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("in");
-  const router = useRouter();
 
   React.useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -65,6 +65,7 @@ export function VisitorChartSupabase() {
     const fetchData = async () => {
       try {
         const response = await axios.get("/api/peoples");
+        console.log(response.data);
         setPeoples((prevPeoples) => {
           if (JSON.stringify(prevPeoples) !== JSON.stringify(response.data)) {
             return response.data;

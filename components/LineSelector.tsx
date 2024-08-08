@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { updateYamlFile } from "@/utils/updateYamlFile";
 
 type ViewOption =
   | ""
@@ -18,16 +19,38 @@ type ViewOption =
   | "diagonal_right"
   | "diagonal_left";
 
-interface LineSelectorProps {
-  setLine: (type: ViewOption) => void;
-}
-
-export const LineSelector: React.FC<LineSelectorProps> = ({ setLine }) => {
+export const LineSelector = () => {
   const [lineType, setLineType] = useState<ViewOption>("");
 
   const handleSelectChange = (value: ViewOption) => {
     setLineType(value);
     setLine(value);
+  };
+
+  const setLine = (type: ViewOption) => {
+    let point1, point2;
+
+    switch (type) {
+      case "horizontal":
+        point1 = { x: 0, y: 240 };
+        point2 = { x: 768, y: 240 };
+        break;
+      case "vertical":
+        point1 = { x: 321, y: 0 };
+        point2 = { x: 321, y: 768 };
+        break;
+      case "diagonal_right":
+        point1 = { x: 643, y: 0 };
+        point2 = { x: 0, y: 480 };
+        break;
+      case "diagonal_left":
+        point1 = { x: 0, y: 0 };
+        point2 = { x: 643, y: 480 };
+        break;
+      default:
+        return;
+    }
+    updateYamlFile(point1, point2);
   };
 
   return (
