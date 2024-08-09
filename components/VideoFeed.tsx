@@ -21,10 +21,12 @@ export const VideoFeed = () => {
   const { videoContainerRef } = useVideoContainerRef();
   const { clickCount, setClickCount } = useClickCount();
   const { startPoint, setStartPoint } = useStartPoint();
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const videoContainer = videoContainerRef.current;
     const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
 
     if (videoContainer && canvas) {
       canvas.width = videoContainer.clientWidth;
@@ -38,11 +40,13 @@ export const VideoFeed = () => {
       }
     };
 
+    isVisible ? "" : ctx?.clearRect;
+
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [isVisible]);
 
   const handleVideoClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
@@ -52,12 +56,19 @@ export const VideoFeed = () => {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    if (clickCount === 0) {
+    if (clickCount === 0 && isVisible) {
       setStartPoint({ x, y });
       setClickCount(1);
-    } else if (clickCount === 1) {
+    } else if (clickCount === 1 && isVisible) {
       const endPoint = { x, y };
-      drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, canvasRef);
+      drawLine(
+        startPoint.x,
+        startPoint.y,
+        endPoint.x,
+        endPoint.y,
+        canvasRef,
+        isVisible
+      );
       setClickCount(0);
       updateYamlFile(startPoint, endPoint);
     }
@@ -86,7 +97,7 @@ export const VideoFeed = () => {
       default:
         return;
     }
-    drawLine(point1.x, point1.y, point2.x, point2.y, canvasRef);
+    drawLine(point1.x, point1.y, point2.x, point2.y, canvasRef, isVisible);
     updateYamlFile(point1, point2);
   };
 
@@ -106,7 +117,11 @@ export const VideoFeed = () => {
           />
           <canvas ref={canvasRef} className="absolute top-0 left-0" />
         </div>
-        <LineSelector setLine={setLine} />
+        <LineSelector
+          setLine={setLine}
+          isVisible={isVisible}
+          setIsVisible={setIsVisible}
+        />
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Switch } from "./ui/switch";
 
 type ViewOption =
   | ""
@@ -20,9 +21,15 @@ type ViewOption =
 
 interface LineSelectorProps {
   setLine: (type: ViewOption) => void;
+  isVisible: boolean;
+  setIsVisible: Dispatch<SetStateAction<boolean>>;
 }
 
-export const LineSelector: React.FC<LineSelectorProps> = ({ setLine }) => {
+export const LineSelector: React.FC<LineSelectorProps> = ({
+  setLine,
+  isVisible,
+  setIsVisible,
+}) => {
   const [lineType, setLineType] = useState<ViewOption>("");
 
   const handleSelectChange = (value: ViewOption) => {
@@ -32,12 +39,16 @@ export const LineSelector: React.FC<LineSelectorProps> = ({ setLine }) => {
 
   return (
     <div className="flex justify-between items-center w-[90vw] xl:w-[40vw] xl:px-4">
-      <p className="w-[30vw] xl:w-[20vw] text-xs md:text-base">
-        Select your preferred line type:
-      </p>
+      <div className="w-[30vw] xl:w-[20vw] text-xs md:text-base flex items-center gap-4">
+        <p>Line visibility</p>
+        <Switch
+          checked={isVisible}
+          onCheckedChange={() => setIsVisible(!isVisible)}
+        />
+      </div>
       <Select value={lineType} onValueChange={handleSelectChange}>
         <SelectTrigger className="w-[60vw] xl:w-[20vw]">
-          <SelectValue placeholder="None" />
+          <SelectValue placeholder="Select Line Type" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
