@@ -86,6 +86,7 @@ export const VideoFeed = () => {
       default:
         return;
     }
+    drawLine(point1.x, point1.y, point2.x, point2.y, canvasRef);
     updateYamlFile(point1, point2);
   };
 
@@ -95,6 +96,7 @@ export const VideoFeed = () => {
         <div
           //   className="relative w-[640px] h-[480px] overflow-hidden"
           className="relative w-[90vw] h-64 sm:h-[30rem] sm:w-[95vw] xl:w-[40vw] xl:h-[60vh] overflow-hidden"
+          onClick={handleVideoClick}
           ref={videoContainerRef}
         >
           <img
