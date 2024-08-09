@@ -38,8 +38,9 @@ type ViewOption =
   | "yearly";
 
 type Person = {
-  up: number;
-  down: number;
+  id: number;
+  Up: number;
+  Down: number;
   createdAt: string;
   totalsDown: number;
   totalsUp: number;
@@ -51,6 +52,8 @@ type AggregatedData = {
   in: number;
   out: number;
   total: number;
+  down: number; // Add these properties for labels
+  up: number;
 };
 
 export function VisitorChartLocal() {
@@ -65,7 +68,7 @@ export function VisitorChartLocal() {
     const fetchData = async () => {
       try {
         const response = await axios.get("/api/peoples");
-        console.log(response.data);
+        //console.log(response.data);
         setPeoples((prevPeoples) => {
           if (JSON.stringify(prevPeoples) !== JSON.stringify(response.data)) {
             return response.data;
@@ -97,37 +100,36 @@ export function VisitorChartLocal() {
     data: Person[],
     view: ViewOption
   ): AggregatedData[] => {
+    if (view !== "none") {
+      data = data.filter((person) => person.Up !== 0 || person.Down !== 0);
+    }
+
+    const maxIdResult = data
+      .filter((person) => person.Up === 0 && person.Down === 0)
+      .reduce((max, person) => (person.id > max ? person.id : max), 0);
+
+    data = data.filter((person) => person.id > maxIdResult);
+
     if (view === "none") {
       return data.map((person) => ({
         date: new Date(person.createdAt).toLocaleString("en-US", {
+          timeZone: "UTC",
           month: "short",
           day: "numeric",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
         }),
-        in: person.totalsDown,
-        out: person.totalsUp,
-        total: person.totals[0],
+        in: person.totalsDown ?? 0,
+        out: person.totalsUp ?? 0,
+        total: person.totals[0] ?? 0,
+        down: person.Down ?? 0,
+        up: person.Up ?? 0,
       }));
     }
 
-    let filteredData = data;
-    if (view === "10min" || view === "30min" || view === "hourly") {
-      // Determine the most recent day
-      const mostRecentDate = new Date(
-        Math.max(...data.map((person) => new Date(person.createdAt).getTime()))
-      );
-      const mostRecentDay = mostRecentDate.toISOString().split("T")[0];
-
-      // Filter data to include only entries from the most recent day
-      filteredData = data.filter(
-        (person) => person.createdAt.split("T")[0] === mostRecentDay
-      );
-    }
-
     const groupedData: { [key: string]: AggregatedData } = {};
-    filteredData.forEach((person) => {
+    data.forEach((person) => {
       const date = new Date(person.createdAt);
       const key =
         view === "10min"
@@ -153,12 +155,24 @@ export function VisitorChartLocal() {
           : date.toLocaleDateString("en-US");
 
       if (!groupedData[key]) {
-        groupedData[key] = { date: key, in: 0, out: 0, total: 0 };
+        groupedData[key] = {
+          date: key,
+          in: 0,
+          out: 0,
+          total: 0,
+          down: 0,
+          up: 0,
+        };
       }
-      groupedData[key].in += person.totalsDown;
-      groupedData[key].out += person.totalsUp;
-      groupedData[key].total = person.totals[0];
+
+      // Handle totals for "none" view type
+      groupedData[key].in += person.Down ?? 0;
+      groupedData[key].out += person.Up ?? 0;
+      groupedData[key].total += person.totals[0] ?? 0;
+      groupedData[key].down += person.Down ?? 0;
+      groupedData[key].up += person.Up ?? 0;
     });
+
     return Object.values(groupedData);
   };
 
@@ -166,29 +180,46 @@ export function VisitorChartLocal() {
     () => aggregateData(peoples, view),
     [peoples, view]
   );
+  console.log(chartDataWithTotal);
 
   const chartConfig = {
     views: {
       label: "Visitor",
     },
     in: {
-      label: "In",
+      label: view === "none" ? "Up" : "In", // Adjust based on view
+      //@ts-ignore
+      dataKey: "in",
       color: "hsl(var(--chart-1))",
     },
     out: {
-      label: "Out",
+      label: view === "none" ? "Down" : "Out", // Adjust based on view
+      //@ts-ignore
+      dataKey: "out",
       color: "hsl(var(--chart-2))",
     },
     total: {
       label: "Remaining",
-      color: "hsl(var(--chart-2))",
+      //@ts-ignore
+      dataKey: "total",
+      color: "hsl(var(--chart-3))",
     },
   } satisfies ChartConfig;
-
   const totalPerCategory = React.useMemo(() => {
-    const formatter = new Intl.NumberFormat("en-US"); // Ensure consistent formatting
-    const totalIn = chartDataWithTotal.reduce((acc, curr) => acc + curr.in, 0);
+    const formatter = new Intl.NumberFormat("en-US");
+    const totalIn = chartDataWithTotal.reduce(
+      (acc, curr) => acc + (view === "none" ? curr.down : curr.in),
+      0
+    );
     const totalOut = chartDataWithTotal.reduce(
+      (acc, curr) => acc + (view === "none" ? curr.up : curr.out),
+      0
+    );
+    const totalEnter = chartDataWithTotal.reduce(
+      (acc, curr) => acc + curr.in,
+      0
+    );
+    const totalExit = chartDataWithTotal.reduce(
       (acc, curr) => acc + curr.out,
       0
     );
@@ -199,9 +230,11 @@ export function VisitorChartLocal() {
     return {
       in: formatter.format(totalIn),
       out: formatter.format(totalOut),
+      enter: formatter.format(totalEnter),
+      exit: formatter.format(totalExit),
       total: formatter.format(totalVisitor),
     };
-  }, [chartDataWithTotal]);
+  }, [chartDataWithTotal, view]);
 
   return (
     <>
@@ -213,7 +246,7 @@ export function VisitorChartLocal() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>View Options</SelectLabel>
-              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="none">Session</SelectItem>
               <SelectItem value="10min">Every 10 Minutes</SelectItem>
               <SelectItem value="30min">Every 30 Minutes</SelectItem>
               <SelectItem value="hourly">Hourly</SelectItem>
@@ -229,17 +262,21 @@ export function VisitorChartLocal() {
           <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
             <CardTitle>Bar Chart</CardTitle>
             <CardDescription>
-              Showing total visitors for the last 3 months
+              {/* Showing total visitors for the last 3 months */}
             </CardDescription>
           </div>
           <div className="flex">
             {["in", "out", "total"].map((key) => {
               const chart = key as keyof typeof chartConfig;
+              //Hide remaining for every type except Session
+              if (chart === "total" && view !== "none") {
+                return null;
+              }
               return (
                 <button
                   key={chart}
                   data-active={activeChart === chart}
-                  className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                  className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/100 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
                   onClick={() => setActiveChart(chart)}
                 >
                   <span className="text-xs text-muted-foreground">
